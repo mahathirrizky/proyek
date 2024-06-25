@@ -27,7 +27,7 @@ func (ph *PembelianHandler) CreatePembelian(c *gin.Context) {
 		return
 	}
 
-	pembelian, err := ph.PembelianService.CreatePembelian(input.IdMaterial, input.Jumlah, input.Status)
+	pembelian, err := ph.PembelianService.CreatePembelian(input)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, helper.APIResponse("Failed to create pembelian", http.StatusInternalServerError, "error", nil))
 		return
@@ -45,13 +45,13 @@ func (ph *PembelianHandler) UpdatePembelian(c *gin.Context) {
 		return
 	}
 
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
+	var inputID pembelian.GetPembelianDetailInput
+    if err := c.ShouldBindUri(&inputID); err != nil {
 		c.JSON(http.StatusBadRequest, helper.APIResponse("Invalid pembelian ID", http.StatusBadRequest, "error", nil))
 		return
 	}
 
-	pembelian, err := ph.PembelianService.UpdatePembelian(id, input.Jumlah, input.Status)
+	pembelian, err := ph.PembelianService.UpdatePembelian(inputID, input)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, helper.APIResponse("Failed to update pembelian", http.StatusInternalServerError, "error", nil))
 		return
@@ -62,13 +62,13 @@ func (ph *PembelianHandler) UpdatePembelian(c *gin.Context) {
 }
 
 func (ph *PembelianHandler) DeletePembelian(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
+	var inputID pembelian.GetPembelianDetailInput
+    if err := c.ShouldBindUri(&inputID); err != nil {
 		c.JSON(http.StatusBadRequest, helper.APIResponse("Invalid pembelian ID", http.StatusBadRequest, "error", nil))
 		return
 	}
 
-	err = ph.PembelianService.DeletePembelian(id)
+	err := ph.PembelianService.DeletePembelian(inputID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, helper.APIResponse("Failed to delete pembelian", http.StatusInternalServerError, "error", nil))
 		return
@@ -79,13 +79,13 @@ func (ph *PembelianHandler) DeletePembelian(c *gin.Context) {
 }
 
 func (ph *PembelianHandler) GetPembelianByID(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
+	var inputID pembelian.GetPembelianDetailInput
+	if err := c.ShouldBindUri(&inputID); err != nil {
 		c.JSON(http.StatusBadRequest, helper.APIResponse("Invalid pembelian ID", http.StatusBadRequest, "error", nil))
 		return
 	}
 
-	pembelian, err := ph.PembelianService.GetPembelianByID(id)
+	pembelian, err := ph.PembelianService.GetPembelianByID(inputID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, helper.APIResponse("Failed to fetch pembelian", http.StatusInternalServerError, "error", nil))
 		return
@@ -97,6 +97,23 @@ func (ph *PembelianHandler) GetPembelianByID(c *gin.Context) {
 
 func (ph *PembelianHandler) GetAllPembelian(c *gin.Context) {
 	pembelians, err := ph.PembelianService.GetAllPembelian()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, helper.APIResponse("Failed to fetch pembelians", http.StatusInternalServerError, "error", nil))
+		return
+	}
+
+	response := helper.APIResponse("List of pembelians", http.StatusOK, "success", pembelians)
+	c.JSON(http.StatusOK, response)
+}
+
+func (ph *PembelianHandler) GetPembelianByProyekID(c *gin.Context) {
+	proyekID, err := strconv.Atoi(c.Param("proyek_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, helper.APIResponse("Invalid proyek ID", http.StatusBadRequest, "error", nil))
+		return
+	}
+
+	pembelians, err := ph.PembelianService.GetPembelianByProyekID(proyekID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, helper.APIResponse("Failed to fetch pembelians", http.StatusInternalServerError, "error", nil))
 		return

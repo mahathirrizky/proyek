@@ -6,10 +6,11 @@ import (
 )
 
 type PembelianService interface {
-	CreatePembelian(idMaterial int, jumlah int, status string) (*PembelianTable, error)
-	UpdatePembelian(id int, jumlah int, status string) (*PembelianTable, error)
-	DeletePembelian(id int) error
-	GetPembelianByID(id int) (*PembelianTable, error)
+	CreatePembelian(input CreatePembelianInput) (*PembelianTable, error)
+	UpdatePembelian(id GetPembelianDetailInput, input UpdatePembelianInput) (*PembelianTable, error)
+	DeletePembelian(id GetPembelianDetailInput) error
+	GetPembelianByID(id GetPembelianDetailInput) (*PembelianTable, error)
+	GetPembelianByProyekID(proyekID int) ([]PembelianTable, error)
 	GetAllPembelian() ([]PembelianTable, error)
 }
 
@@ -21,20 +22,21 @@ func NewPembelianService(repository PembelianRepository) *pembelianService {
 	return &pembelianService{repository}
 }
 
-func (s *pembelianService) CreatePembelian(idMaterial int, jumlah int, status string) (*PembelianTable, error) {
+func (s *pembelianService) CreatePembelian(input CreatePembelianInput) (*PembelianTable, error) {
 	// Validasi input
-	if idMaterial == 0 {
+	if input.IdMaterial == 0 {
 		return nil, errors.New("ID Material cannot be empty")
 	}
-	if jumlah <= 0 {
+	if input.Jumlah <= 0 {
 		return nil, errors.New("jumlah must be greater than zero")
 	}
 
 	// Buat objek PembelianTable baru
 	pembelian := &PembelianTable{
-		IdMaterial: idMaterial,
-		Jumlah:     jumlah,
-		Status:     status,
+		IdProyek:   input.IdProyek,
+		IdMaterial: input.IdMaterial,
+		Jumlah:     input.Jumlah,
+		Status:     input.Status,
 		CreatedAt:  time.Now(),
 	}
 
@@ -46,9 +48,9 @@ func (s *pembelianService) CreatePembelian(idMaterial int, jumlah int, status st
 	return pembelian, nil
 }
 
-func (s *pembelianService) UpdatePembelian(id int, jumlah int, status string) (*PembelianTable, error) {
+func (s *pembelianService) UpdatePembelian(id GetPembelianDetailInput, input UpdatePembelianInput) (*PembelianTable, error) {
 	// Validasi input
-	if jumlah <= 0 {
+	if input.Jumlah <= 0 {
 		return nil, errors.New("jumlah must be greater than zero")
 	}
 
@@ -59,8 +61,8 @@ func (s *pembelianService) UpdatePembelian(id int, jumlah int, status string) (*
 	}
 
 	// Update data PembelianTable
-	existingPembelian.Jumlah = jumlah
-	existingPembelian.Status = status
+	existingPembelian.Jumlah = input.Jumlah
+	existingPembelian.Status = input.Status
 
 	// Simpan perubahan ke database menggunakan repository
 	if err := s.repository.UpdatePembelian(id, existingPembelian); err != nil {
@@ -68,7 +70,7 @@ func (s *pembelianService) UpdatePembelian(id int, jumlah int, status string) (*
 	}
 
 	// If status is "selesai", update the stock
-	if status == "selesai" {
+	if input.Status == "selesai" {
 		if err := s.repository.UpdateStock(existingPembelian.IdMaterial, existingPembelian.Jumlah); err != nil {
 			return nil, err
 		}
@@ -77,7 +79,7 @@ func (s *pembelianService) UpdatePembelian(id int, jumlah int, status string) (*
 	return existingPembelian, nil
 }
 
-func (s *pembelianService) DeletePembelian(id int) error {
+func (s *pembelianService) DeletePembelian(id GetPembelianDetailInput) error {
 	// Hapus PembelianTable berdasarkan ID menggunakan repository
 	if err := s.repository.DeletePembelian(id); err != nil {
 		return err
@@ -85,7 +87,7 @@ func (s *pembelianService) DeletePembelian(id int) error {
 	return nil
 }
 
-func (s *pembelianService) GetPembelianByID(id int) (*PembelianTable, error) {
+func (s *pembelianService) GetPembelianByID(id GetPembelianDetailInput) (*PembelianTable, error) {
 	// Ambil PembelianTable berdasarkan ID menggunakan repository
 	pembelian, err := s.repository.GetPembelianByID(id)
 	if err != nil {
@@ -101,4 +103,8 @@ func (s *pembelianService) GetAllPembelian() ([]PembelianTable, error) {
 		return nil, err
 	}
 	return pembelian, nil
+}
+
+func (s *pembelianService) GetPembelianByProyekID(proyekID int) ([]PembelianTable, error) {
+	return s.repository.GetPembelianByProyekID(proyekID)
 }

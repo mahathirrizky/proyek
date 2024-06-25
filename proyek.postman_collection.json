@@ -696,6 +696,37 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get All Pembelian By Proyek",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/pembelian/proyek/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"pembelian",
+								"proyek",
+								"1"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}

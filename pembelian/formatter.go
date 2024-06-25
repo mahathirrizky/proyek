@@ -5,6 +5,7 @@ import "time"
 type PembelianFormatter struct {
     IdPembelian int       `json:"id_pembelian"`
     IdMaterial  int       `json:"id_material"`
+    IdProyek  int       `json:"id_proyek"`
     Jumlah      int       `json:"jumlah"`
     Status      string    `json:"status"`
     CreatedAt   time.Time `json:"created_at"`
@@ -15,6 +16,7 @@ func FormatPembelian(pembelian PembelianTable) PembelianFormatter {
     return PembelianFormatter{
         IdPembelian: pembelian.IdPembelian,
         IdMaterial:  pembelian.IdMaterial,
+        IdProyek:    pembelian.IdProyek,
         Jumlah:      pembelian.Jumlah,
         Status:      pembelian.Status,
         CreatedAt:   pembelian.CreatedAt,

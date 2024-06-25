@@ -96,7 +96,7 @@ func main() {
 		api.POST("/pembelian", pembelianHandler.CreatePembelian)
 		api.PUT("/pembelian/:id", pembelianHandler.UpdatePembelian)
 		api.GET("/pembelian/:id", pembelianHandler.GetPembelianByID)
-		api.GET("/pembelian", pembelianHandler.GetAllPembelian)
+		api.GET("/pembelian/proyek/:proyek_id", pembelianHandler.GetPembelianByProyekID)
 	}
 
 	// Start Gin server
