@@ -1,6 +1,7 @@
 # proyek
 
 Role BackEnd
+
 Tugas 1
 
 a. Draft Design ERD (Entity Relationship Diagram) dari sistem 
@@ -8,6 +9,7 @@ pergudangan
 ![ERD](https://github.com/mahathirrizky/proyek/blob/main/ERD.png)
 
 b. menu apa saja yang sebaiknya ada di sistem antara lain
+
 -Input Data Barang
 Memungkinkan pengguna untuk memasukkan data barang yang dibeli atau dikirim ke proyek.
 
@@ -19,6 +21,7 @@ Sub-menu yang mencakup:
  -Permintaan Material dari Proyek: Pengguna memasukkan kode material, sistem menampilkan informasi lengkap material, dan memproses permintaan.
  -Penerbitan Surat Jalan: Otomatis diterbitkan jika stok mencukupi.
  -Pengajuan Pembelian: Jika stok tidak mencukupi, sistem menginisiasi proses pengajuan pembelian.
+
 
 c. Untuk menggambarkan desain user interface, perlu mempertimbangkan kebutuhan pengguna dan kejelasan informasi. Sebagai contoh:
 
