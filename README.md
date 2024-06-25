@@ -36,4 +36,4 @@ Form untuk memasukkan kode material untuk permintaan proyek.
 
 
 Tugas 2
-Repo ini adalah contoh API CRUD dari Sistem
+Repo ini adalah contoh API CRUD dari Sistem dengan menggunakan Golang
