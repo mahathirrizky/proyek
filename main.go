@@ -9,10 +9,10 @@ import (
 	"proyek/helper"
 	"proyek/material"
 	"proyek/pembelian"
+	"proyek/permintaan"
 	"proyek/proyek"
 	"proyek/user"
 	"strings"
-
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -20,24 +20,20 @@ import (
 	"gorm.io/gorm"
 )
 
+// Main function
 func main() {
-	// Replace your MySQL connection details here
+	// Initialization
 	dsn := "root:@tcp(localhost:3306)/proyek?charset=utf8mb4&parseTime=True&loc=Local"
-
-	// Initialize GORM
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
 
 	// Auto Migrate the models
-	err = db.AutoMigrate(&user.UserTable{}, &adminproyek.AdminProyekTable{}, &material.MaterialTable{}, &material.StokTable{}, &proyek.ProyekTable{}, &pembelian.PembelianTable{})
+	err = db.AutoMigrate(&user.UserTable{}, &adminproyek.AdminProyekTable{}, &material.MaterialTable{}, &material.StokTable{}, &proyek.ProyekTable{}, &pembelian.PembelianTable{}, &permintaan.PermintaanTable{}, &permintaan.PermintaanDetailTable{})
 	if err != nil {
 		log.Fatalf("Error auto migrating models: %v", err)
 	}
-
-	// Initialize Gin router
-	router := gin.Default()
 
 	// Initialize repositories
 	userRepo := user.NewUserRepository(db)
@@ -45,6 +41,7 @@ func main() {
 	materialRepo := material.NewMaterialRepository(db)
 	proyekRepo := proyek.NewRepository(db)
 	pembelianRepo := pembelian.NewPembelianRepository(db)
+	permintaanRepo := permintaan.NewPermintaanRepository(db)
 
 	// Initialize services with repositories
 	userService := user.NewUserService(userRepo)
@@ -52,6 +49,7 @@ func main() {
 	materialService := material.NewMaterialService(materialRepo)
 	proyekService := proyek.NewService(proyekRepo)
 	pembelianService := pembelian.NewPembelianService(pembelianRepo)
+	permintaanService := permintaan.NewPermintaanService(permintaanRepo, materialRepo)
 	authService := auth.NewService()
 
 	// Initialize handlers and wire them with services
@@ -60,8 +58,10 @@ func main() {
 	materialHandler := handlers.NewMaterialHandler(materialService)
 	proyekHandler := handlers.NewProyekHandler(proyekService)
 	pembelianHandler := handlers.NewPembelianHandler(pembelianService)
+	permintaanHandler := handlers.NewPermintaanHandler(permintaanService)
 
 	// Routes
+	router := gin.Default()
 	api := router.Group("/api")
 	{
 		// User routes
@@ -81,9 +81,8 @@ func main() {
 		// Material routes
 		api.POST("/material", materialHandler.CreateMaterial)
 		api.GET("/material", materialHandler.GetAllMaterials)
-		api.GET("/material/:id", materialHandler.GetMaterialByID) 
-		api.PUT("/material/:id", materialHandler.UpdateMaterial) 
-
+		api.GET("/material/:id", materialHandler.GetMaterialByID)
+		api.PUT("/material/:id", materialHandler.UpdateMaterial)
 
 		// Proyek routes
 		api.POST("/proyek", proyekHandler.CreateProyek)
@@ -97,15 +96,21 @@ func main() {
 		api.PUT("/pembelian/:id", pembelianHandler.UpdatePembelian)
 		api.GET("/pembelian/:id", pembelianHandler.GetPembelianByID)
 		api.GET("/pembelian/proyek/:proyek_id", pembelianHandler.GetPembelianByProyekID)
+
+		// Permintaan routes
+		api.POST("/permintaan", permintaanHandler.CreatePermintaan)
+		api.PUT("/permintaan/:id", permintaanHandler.UpdatePermintaan)
+		api.GET("/permintaan/:id", permintaanHandler.GetPermintaanByID)
+		api.GET("/permintaan/proyek/:proyek_id", permintaanHandler.GetPermintaanByProyekID)
 	}
 
 	// Start Gin server
 	router.Run(":8080")
 }
+
 func authMiddleware(authService auth.Service, userService user.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
-
 		if !strings.Contains(authHeader, "Bearer") {
 			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
@@ -132,7 +137,6 @@ func authMiddleware(authService auth.Service, userService user.UserService) gin.
 			return
 		}
 
-		// Retrieve userID from claim
 		userIDFloat64, ok := claim["user_id"].(float64)
 		if !ok {
 			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
@@ -141,9 +145,6 @@ func authMiddleware(authService auth.Service, userService user.UserService) gin.
 		}
 		userID := int(userIDFloat64)
 
-		print(userID)
-
-		// Retrieve user from userService
 		user, err := userService.GetUserByID(userID)
 		if err != nil {
 			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
@@ -158,16 +159,16 @@ func authMiddleware(authService auth.Service, userService user.UserService) gin.
 
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-			c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-			c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-			c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-			c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
 
-			if c.Request.Method == "OPTIONS" {
-					c.AbortWithStatus(204)
-					return
-			}
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
 
-			c.Next()
+		c.Next()
 	}
 }

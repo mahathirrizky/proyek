@@ -27,13 +27,13 @@ func (ph *PembelianHandler) CreatePembelian(c *gin.Context) {
 		return
 	}
 
-	pembelian, err := ph.PembelianService.CreatePembelian(input)
+	p, err := ph.PembelianService.CreatePembelian(input)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, helper.APIResponse("Failed to create pembelian", http.StatusInternalServerError, "error", nil))
 		return
 	}
-
-	response := helper.APIResponse("Pembelian created successfully", http.StatusCreated, "success", pembelian)
+	formatter := pembelian.FormatPembelian(*p)
+	response := helper.APIResponse("Pembelian created successfully", http.StatusCreated, "success", formatter)
 	c.JSON(http.StatusCreated, response)
 }
 
@@ -51,13 +51,14 @@ func (ph *PembelianHandler) UpdatePembelian(c *gin.Context) {
 		return
 	}
 
-	pembelian, err := ph.PembelianService.UpdatePembelian(inputID, input)
+	p, err := ph.PembelianService.UpdatePembelian(inputID, input)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, helper.APIResponse("Failed to update pembelian", http.StatusInternalServerError, "error", nil))
 		return
 	}
+	formatter := pembelian.FormatPembelian(*p)
 
-	response := helper.APIResponse("Pembelian updated successfully", http.StatusOK, "success", pembelian)
+	response := helper.APIResponse("Pembelian updated successfully", http.StatusOK, "success", formatter)
 	c.JSON(http.StatusOK, response)
 }
 
@@ -85,24 +86,26 @@ func (ph *PembelianHandler) GetPembelianByID(c *gin.Context) {
 		return
 	}
 
-	pembelian, err := ph.PembelianService.GetPembelianByID(inputID)
+	p, err := ph.PembelianService.GetPembelianByID(inputID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, helper.APIResponse("Failed to fetch pembelian", http.StatusInternalServerError, "error", nil))
 		return
 	}
+	formatter := pembelian.FormatPembelian(*p)
 
-	response := helper.APIResponse("Pembelian details", http.StatusOK, "success", pembelian)
+	response := helper.APIResponse("Pembelian details", http.StatusOK, "success", formatter)
 	c.JSON(http.StatusOK, response)
 }
 
 func (ph *PembelianHandler) GetAllPembelian(c *gin.Context) {
-	pembelians, err := ph.PembelianService.GetAllPembelian()
+	p, err := ph.PembelianService.GetAllPembelian()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, helper.APIResponse("Failed to fetch pembelians", http.StatusInternalServerError, "error", nil))
+		c.JSON(http.StatusInternalServerError, helper.APIResponse("Failed to fetch pembelian list", http.StatusInternalServerError, "error", nil))
 		return
 	}
+	formatter := pembelian.FormatPembelianList(p)
 
-	response := helper.APIResponse("List of pembelians", http.StatusOK, "success", pembelians)
+	response := helper.APIResponse("List of pembelian", http.StatusOK, "success", formatter)
 	c.JSON(http.StatusOK, response)
 }
 
@@ -113,12 +116,13 @@ func (ph *PembelianHandler) GetPembelianByProyekID(c *gin.Context) {
 		return
 	}
 
-	pembelians, err := ph.PembelianService.GetPembelianByProyekID(proyekID)
+	p, err := ph.PembelianService.GetPembelianByProyekID(proyekID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, helper.APIResponse("Failed to fetch pembelians", http.StatusInternalServerError, "error", nil))
+		c.JSON(http.StatusInternalServerError, helper.APIResponse("Failed to fetch pembelian list", http.StatusInternalServerError, "error", nil))
 		return
 	}
+	formatter := pembelian.FormatPembelianList(p)
 
-	response := helper.APIResponse("List of pembelians", http.StatusOK, "success", pembelians)
+	response := helper.APIResponse("List of pembelian", http.StatusOK, "success", formatter)
 	c.JSON(http.StatusOK, response)
 }

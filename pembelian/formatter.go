@@ -24,9 +24,9 @@ func FormatPembelian(pembelian PembelianTable) PembelianFormatter {
     }
 }
 
-func FormatPembelians(pembelians []PembelianTable) []PembelianFormatter {
-    pembelianFormatters := make([]PembelianFormatter, len(pembelians))
-    for i, p := range pembelians {
+func FormatPembelianList(pembelianlist []PembelianTable) []PembelianFormatter {
+    pembelianFormatters := make([]PembelianFormatter, len(pembelianlist))
+    for i, p := range pembelianlist {
         pembelianFormatters[i] = FormatPembelian(p)
     }
     return pembelianFormatters

@@ -51,9 +51,16 @@ func (r *repository) FindStokByMaterialID(materialID int) (StokTable, error) {
 }
 
 func (r *repository) UpdateStok(stok StokTable) (StokTable, error) {
-	err := r.db.Save(&stok).Error
-	return stok, err
+	var existingStok StokTable
+	if err := r.db.Where("id_material = ?", stok.IdMaterial).First(&existingStok).Error; err != nil {
+		return existingStok, err
+	}
+
+	existingStok.Jumlah += stok.Jumlah
+	err := r.db.Save(&existingStok).Error
+	return existingStok, err
 }
+
 func (r *repository) FindAllMaterials() ([]MaterialTable, error) {
 	var materials []MaterialTable
 	err := r.db.Find(&materials).Error
